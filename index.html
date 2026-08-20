@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoggly — Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #071019;
+    --bg-alt: #0a1520;
+    --panel: #0d1c28;
+    --panel-2: #0f2130;
+    --line: #17313f;
+    --cyan: #22d3ee;
+    --cyan-dim: #0e7490;
+    --blue: #7dd3fc;
+    --blue-2: #38bdf8;
+    --text: #e8f6fb;
+    --muted: #86a7b5;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior:smooth; }
+
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(34,211,238,.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 20%, rgba(125,211,252,.08), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  a { color:inherit; text-decoration:none; }
+
+  ::selection{ background: rgba(34,211,238,.3); color:#fff; }
+
+  /* ---------- scrollbar ---------- */
+  ::-webkit-scrollbar{ width:10px; }
+  ::-webkit-scrollbar-track{ background:var(--bg); }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:8px; }
+
+  /* ---------- Tab bar nav (signature element) ---------- */
+  .tabbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:stretch;
+    background: var(--bg-alt);
+    border-bottom:1px solid var(--line);
+    backdrop-filter: blur(8px);
+    overflow-x:auto;
+  }
+  .tabbar .brand{
+    display:flex; align-items:center; gap:8px;
+    padding:0 18px;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:.85rem;
+    color:var(--cyan);
+    border-right:1px solid var(--line);
+    white-space:nowrap;
+  }
+  .brand .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 8px var(--cyan);
+  }
+  .tabbar nav{ display:flex; flex:1; }
+  .tab{
+    font-family:var(--mono);
+    font-size:.8rem;
+    color:var(--muted);
+    padding:14px 20px;
+    border-right:1px solid var(--line);
+    white-space:nowrap;
+    position:relative;
+    cursor:pointer;
+    transition:color .2s ease, background .2s ease;
+  }
+  .tab .ext{ color:var(--cyan-dim); }
+  .tab:hover{ color:var(--text); background:rgba(34,211,238,.05); }
+  .tab.active{ color:var(--cyan); background:var(--panel); }
+  .tab.active::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:-1px; height:2px;
+    background:linear-gradient(90deg,var(--cyan),var(--blue));
+  }
+  .tab.active .ext{ color:var(--blue); }
+
+  section{ position:relative; z-index:1; }
+
+  /* ---------- Hero / terminal ---------- */
+  .hero{
+    max-width:1000px;
+    margin:0 auto;
+    padding: 90px 24px 60px;
+  }
+  .hero-kicker{
+    font-family:var(--mono);
+    font-size:.78rem;
+    color:var(--cyan);
+    letter-spacing:.08em;
+    margin-bottom:18px;
+  }
+  .hero-kicker::before{ content:"// "; color:var(--cyan-dim); }
+
+  .terminal{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow: 0 20px 60px -20px rgba(34,211,238,.15), 0 0 0 1px rgba(34,211,238,.02);
+  }
+  .terminal-head{
+    display:flex; align-items:center; gap:8px;
+    padding:12px 16px;
+    background:var(--panel-2);
+    border-bottom:1px solid var(--line);
+  }
+  .terminal-head span{
+    width:11px; height:11px; border-radius:50%;
+    background:#1b3341;
+  }
+  .terminal-head .title{
+    margin-left:8px;
+    font-family:var(--mono);
+    font-size:.72rem;
+    color:var(--muted);
+  }
+  .terminal-body{
+    padding:26px 26px 34px;
+    font-family:var(--mono);
+    font-size:1rem;
+  }
+  .terminal-body .line{ margin-bottom:10px; color:var(--muted); }
+  .terminal-body .prompt{ color:var(--cyan); }
+  .terminal-body .path{ color:var(--blue); }
+  .terminal-body .cmd{ color:var(--text); }
+  #typed-out{
+    display:block;
+    margin-top:14px;
+    font-family:var(--sans);
+    font-size:1.35rem;
+    font-weight:700;
+    line-height:1.5;
+    color:var(--text);
+    min-height:5.4em;
+  }
+  #typed-out .accent{ color:var(--cyan); }
+  .cursor{
+    display:inline-block; width:9px; height:1.1em;
+    background:var(--cyan);
+    margin-left:2px;
+    vertical-align:text-bottom;
+    animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .hero-links{
+    display:flex; gap:14px; margin-top:30px; flex-wrap:wrap;
+  }
+  .btn{
+    font-family:var(--mono);
+    font-size:.82rem;
+    padding:12px 20px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    transition: all .2s ease;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn.primary{
+    background:linear-gradient(90deg, var(--cyan), var(--blue-2));
+    color:#03141c;
+    font-weight:700;
+    border:none;
+  }
+  .btn.primary:hover{ filter:brightness(1.1); transform:translateY(-1px); }
+  .btn.ghost{ color:var(--text); }
+  .btn.ghost:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+  /* ---------- Section shell ---------- */
+  .wrap{ max-width:1000px; margin:0 auto; padding:80px 24px; }
+  .section-tag{
+    font-family:var(--mono); font-size:.75rem; color:var(--cyan-dim);
+    letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px;
+  }
+  .section-title{
+    font-family:var(--mono);
+    font-size:clamp(1.6rem, 3vw, 2.2rem);
+    font-weight:800;
+    margin-bottom:36px;
+    color:var(--text);
+  }
+  .section-title .brace{ color:var(--cyan); }
+
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  /* ---------- About ---------- */
+  .about-grid{
+    display:grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap:36px;
+  }
+  .about-text p{ color:var(--muted); margin-bottom:16px; font-size:1.02rem; }
+  .about-text strong{ color:var(--text); }
+
+  .stack-panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px;
+    font-family:var(--mono);
+    font-size:.85rem;
+  }
+  .stack-panel .file-label{ color:var(--muted); margin-bottom:12px; font-size:.75rem; }
+  .stack-key{ color:var(--blue); }
+  .stack-str{ color:var(--cyan); }
+  .stack-punc{ color:var(--muted); }
+  .stack-panel pre{ white-space:pre-wrap; line-height:1.9; }
+
+  /* ---------- Projects ---------- */
+  .proj-tabs{
+    display:flex; gap:2px; margin-bottom:28px;
+    border:1px solid var(--line); border-radius:8px; overflow:hidden;
+    width:fit-content;
+  }
+  .proj-tab{
+    font-family:var(--mono); font-size:.82rem;
+    padding:10px 18px;
+    background:var(--panel);
+    color:var(--muted);
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .proj-tab.active{ background:var(--panel-2); color:var(--cyan); }
+  .proj-tab .ext{ color:var(--cyan-dim); }
+  .proj-tab.active .ext{ color:var(--blue); }
+
+  .proj-panel{ display:none; }
+  .proj-panel.active{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+  .card{
+    display:block;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px;
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    cursor:pointer;
+  }
+  .card:hover{
+    transform:translateY(-4px);
+    border-color: var(--cyan-dim);
+    box-shadow:0 16px 40px -20px rgba(34,211,238,.35);
+  }
+  .card:focus-visible{
+    outline:2px solid var(--cyan);
+    outline-offset:3px;
+  }
+  .card.single{ grid-column: 1 / -1; }
+  .card-top .arrow{
+    font-family:var(--mono);
+    color:var(--cyan-dim);
+    font-size:.85rem;
+    transition: transform .2s ease, color .2s ease;
+  }
+  .card:hover .card-top .arrow{ color:var(--cyan); transform:translate(2px,-2px); }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+  .card-title{ font-family:var(--mono); font-weight:700; font-size:1rem; color:var(--text); }
+  .card-comment{ font-family:var(--mono); font-size:.75rem; color:var(--muted); margin-bottom:14px; }
+  .card-comment::before{ content:"-- "; color:var(--cyan-dim); }
+  .card p.desc{ color:var(--muted); font-size:.9rem; margin-bottom:16px; }
+  .tags{ display:flex; gap:8px; flex-wrap:wrap; }
+  .tag{
+    font-family:var(--mono); font-size:.68rem;
+    padding:4px 9px; border-radius:20px;
+    background:rgba(34,211,238,.08);
+    color:var(--blue);
+    border:1px solid rgba(34,211,238,.2);
+  }
+
+  /* ---------- Contact ---------- */
+  .contact-panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:40px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .contact-panel::before{
+    content:"";
+    position:absolute; inset:0;
+    background:linear-gradient(135deg, rgba(34,211,238,.08), transparent 50%);
+    pointer-events:none;
+  }
+  .contact-panel h2{
+    font-family:var(--mono); font-size:1.6rem; margin-bottom:12px;
+  }
+  .contact-panel p{ color:var(--muted); margin-bottom:26px; }
+  .contact-links{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:26px 24px;
+    text-align:center;
+    font-family:var(--mono);
+    font-size:.75rem;
+    color:var(--muted);
+  }
+  footer .accent{ color:var(--cyan); }
+
+  @media (max-width: 720px){
+    .about-grid{ grid-template-columns:1fr; }
+    .proj-panel.active{ grid-template-columns:1fr; }
+    .terminal-body{ font-size:.85rem; }
+    #typed-out{ font-size:1.1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    * { animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tabbar">
+  <div class="brand"><span class="dot"></span> smoggly</div>
+  <nav>
+    <div class="tab active" data-target="home"><span class="ext">~/</span>home.html</div>
+    <div class="tab" data-target="about"><span class="ext">~/</span>about.md</div>
+    <div class="tab" data-target="projects"><span class="ext">~/</span>projects/</div>
+    <div class="tab" data-target="contact"><span class="ext">~/</span>contact.sh</div>
+  </nav>
+</div>
+
+<section id="home" class="hero">
+  <div class="hero-kicker">welcome to my portfolio</div>
+  <div class="terminal">
+    <div class="terminal-head">
+      <span></span><span></span><span></span>
+      <div class="title">smoggly — zsh</div>
+    </div>
+    <div class="terminal-body">
+      <div class="line"><span class="prompt">smoggly@web</span><span class="path">:~$</span> <span class="cmd">whoami</span></div>
+      <span id="typed-out"></span><span class="cursor" id="blink-cursor"></span>
+    </div>
+  </div>
+  <div class="hero-links">
+    <a href="#projects" class="btn primary" data-tabtarget="projects">view projects →</a>
+    <a href="#contact" class="btn ghost" data-tabtarget="contact">get in touch</a>
+  </div>
+</section>
+
+<section id="about" class="wrap">
+  <div class="section-tag">01 — profile</div>
+  <h2 class="section-title"><span class="brace">{</span> about <span class="brace">}</span></h2>
+  <div class="about-grid reveal">
+    <div class="about-text">
+      <p>I'm <strong>Smoggly</strong>, a developer who splits my time between two very different corners of the web. On one side, I write clean, structured <strong>HTML</strong> and build front-end interfaces that just work. On the other, I hop into <strong>Roblox Studio</strong> and script gameplay systems in <strong>Lua</strong>.</p>
+      <p>I like the contrast — one day it's semantic markup and layout precision, the next it's rigging up game loops, leaderboards, or shop systems for a Roblox project. Both scratch the same itch: taking a blank file and turning it into something people can actually use.</p>
+      <p>This site is a running log of what I've been building on both fronts — swap between the tabs above to browse either side of the stack.</p>
+    </div>
+    <div class="stack-panel">
+      <div class="file-label">stack.json</div>
+      <pre><span class="stack-punc">{</span>
+  <span class="stack-key">"web"</span><span class="stack-punc">:</span> [<span class="stack-str">"HTML"</span>, <span class="stack-str">"CSS"</span>, <span class="stack-str">"JavaScript"</span>],
+  <span class="stack-key">"games"</span><span class="stack-punc">:</span> [<span class="stack-str">"Lua"</span>, <span class="stack-str">"Roblox Studio"</span>],
+  <span class="stack-key">"focus"</span><span class="stack-punc">:</span> <span class="stack-str">"building things that work"</span>,
+  <span class="stack-key">"status"</span><span class="stack-punc">:</span> <span class="stack-str">"open to projects"</span>
+<span class="stack-punc">}</span></pre>
+    </div>
+  </div>
+</section>
+
+<section id="projects" class="wrap">
+  <div class="section-tag">02 — work</div>
+  <h2 class="section-title"><span class="brace">{</span> projects <span class="brace">}</span></h2>
+
+  <div class="proj-tabs reveal">
+    <div class="proj-tab active" data-panel="html-projects">index<span class="ext">.html</span></div>
+    <div class="proj-tab" data-panel="lua-projects">game<span class="ext">.lua</span></div>
+  </div>
+
+  <div class="proj-panel active reveal" id="html-projects">
+    <a class="card" href="eaglercraft.docternachos.com" target="_blank" rel="noopener">
+      <div class="card-top"><span class="card-title">Eaglercraft</span><span class="arrow">↗</span></div>
+      <div class="card-comment">Minecraft, playable straight in the browser</div>
+      <p class="desc">A browser-based Eaglercraft client I set up and got running with no coding required — just dropped it into the file structure and deployed it so anyone can play Minecraft from a web page, no download needed.</p>
+      <div class="tags"><span class="tag">HTML</span><span class="tag">Browser Game</span><span class="tag">No-Code Setup</span></div>
+    </a>
+    <a class="card" href="tracker.docternachos.com" target="_blank" rel="noopener">
+      <div class="card-top"><span class="card-title">Payback Tracker</span><span class="arrow">↗</span></div>
+      <div class="card-comment">know exactly who owes who, and how much</div>
+      <p class="desc">A simple web tool for tracking money you need to pay back — or that others owe you. Log debts, mark them as settled, and keep a running tally so nothing gets forgotten.</p>
+      <div class="tags"><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span></div>
+    </a>
+  </div>
+
+  <div class="proj-panel" id="lua-projects">
+    <a class="card single" href="https://www.roblox.com/games/117684044276324/The-Survey" target="_blank" rel="noopener">
+      <div class="card-top"><span class="card-title">The Survey</span><span class="arrow">↗</span></div>
+      <div class="card-comment">a rainy night, a knock at the door, and one survey to fill out</div>
+      <p class="desc">A horror game where you're taking a survey alone at night, rain hammering the windows — and it slowly becomes clear the survey knows more about you than it should. Built around tension, sound design, and a slow unraveling sense of dread rather than jump scares.</p>
+      <div class="tags"><span class="tag">Lua</span><span class="tag">Horror</span><span class="tag">Atmosphere</span><span class="tag">Roblox</span></div>
+    </a>
+  </div>
+</section>
+
+<section id="contact" class="wrap">
+  <div class="section-tag">03 — reach out</div>
+  <div class="contact-panel reveal">
+    <h2>let's build something</h2>
+    <p>Got an HTML project or a Roblox game idea? I'm open to hearing about it.</p>
+    <div class="contact-links">
+      <a href="mailto:smogglymc@gmail.com" class="btn primary">email me →</a>
+      <a href="https://discord.gg/5FuzTaCNc6" class="btn ghost">Discord</a>
+      <a href="https://github.com/docternachos" class="btn ghost">GitHub</a>
+      <a href="https://www.roblox.com/users/10458449902/profile" class="btn ghost">Roblox profile</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  built by <span class="accent">Smoggly</span> — HTML on one tab, Lua on the other
+</footer>
+
+<script>
+  // ---- tab bar navigation ----
+  const tabs = document.querySelectorAll('.tab');
+  const sections = ['home','about','projects','contact'];
+
+  function setActiveTab(id){
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.target === id));
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const id = tab.dataset.target;
+      document.getElementById(id).scrollIntoView({behavior:'smooth', block: id === 'home' ? 'start' : 'start'});
+    });
+  });
+
+  document.querySelectorAll('[data-tabtarget]').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const id = el.dataset.tabtarget;
+      document.getElementById(id).scrollIntoView({behavior:'smooth'});
+    });
+  });
+
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        setActiveTab(entry.target.id);
+      }
+    });
+  }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) observer.observe(el);
+  });
+
+  // ---- typed terminal intro ----
+  const typedEl = document.getElementById('typed-out');
+  const fullText = "Hi, I'm Smoggly — an HTML developer and Roblox Lua game scripter.";
+  const accentWord = "Smoggly";
+  let i = 0;
+
+  function typeChar(){
+    if(i <= fullText.length){
+      const slice = fullText.slice(0, i);
+      typedEl.innerHTML = slice.replace(accentWord, '<span class="accent">'+accentWord+'</span>');
+      i++;
+      setTimeout(typeChar, 28);
+    }
+  }
+  typeChar();
+
+  // ---- reveal on scroll ----
+  const revealObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('in');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ---- project language tabs ----
+  const projTabs = document.querySelectorAll('.proj-tab');
+  const projPanels = document.querySelectorAll('.proj-panel');
+  projTabs.forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      projTabs.forEach(t=>t.classList.remove('active'));
+      projPanels.forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.panel).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
